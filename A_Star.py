@@ -133,7 +133,10 @@ def drawGrid(surface):
 def drawWall(surface, nodes):
 	black = (0, 0, 0)
 	for node in nodes:
-		pygame.draw.rect(surface, black, (node[1]*(square_dim+margin)+margin, node[0]*(square_dim+margin)+margin, square_dim, square_dim))
+		# Draw rectangle walls
+		# pygame.draw.rect(surface, black, (node[1]*(square_dim+margin)+margin, node[0]*(square_dim+margin)+margin, square_dim, square_dim))
+		# Draw circle walls
+		pygame.draw.circle(surface, black, (node[1]*(square_dim+margin)+margin+square_dim//2, node[0]*(square_dim+margin)+margin+square_dim//2), int(square_dim/2))
 
 def drawPath(surface, path):
 	blue = (0, 0, 255)
@@ -147,7 +150,7 @@ def drawPath(surface, path):
 # Grid dimmensions
 margin = 1
 win_dim = 400
-dim_size = 40
+dim_size = 20
 square_dim = int((win_dim - dim_size) / dim_size)
 FPS = 60
 start_node = (0, 0)
