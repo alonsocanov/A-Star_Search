@@ -153,6 +153,7 @@ window = pygame.display.set_mode((win_dim, win_dim))
 pygame.display.set_caption('A*')
 clock = pygame.time.Clock()
 
+
 state = Serach(dim_size)
 drawGrid(window)
 wall_nodes = state.getWallNodes()
