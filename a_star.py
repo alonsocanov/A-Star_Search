@@ -31,7 +31,8 @@ class Serach:
                 self._nodes.append((i, j))
 
     def neigbourgs(self):
-        posibilities = [(-1, -1), (0, -1), (1, -1), (-1, 0), (1, 0), (-1, 1), (0, 1), (1, 1)]
+        posibilities = [(-1, -1), (0, -1), (1, -1), (-1, 0),
+                        (1, 0), (-1, 1), (0, 1), (1, 1)]
         for node in self._nodes:
             is_neighbor = []
             for i in posibilities:
@@ -53,17 +54,18 @@ class Serach:
         if self._wall_nodes == []:
             print("Nothing was deleted")
         elif isinstance(self._wall_nodes, tuple) and len(self._wall_nodes) == 2:
-            del self._nodes[node]
+            self._nodes = []
         elif isinstance(self._wall_nodes, list) and isinstance(self._wall_nodes[0], tuple) and len(self._wall_nodes[0]) == 2:
             for i in self._wall_nodes:
                 if i in self._nodes:
-                    del self._nodes[self._nodes.index(i)]
+                    self._nodes.pop(self._nodes.index(i))
         else:
             print("Nothing was deleted")
 
     def FGH(self):
         for node in self._nodes:
-            self._h[node] = sqrt((node[0] - end_node[0]) ** 2 + (node[1] - end_node[1]) ** 2)
+            self._h[node] = sqrt((node[0] - end_node[0]) **
+                                 2 + (node[1] - end_node[1]) ** 2)
             self._g[node] = sys.float_info.max
             self._f[node] = sys.float_info.max
         self._g[start_node] = 0
@@ -78,7 +80,7 @@ class Serach:
             j = randint(0, dim_size - 1)
             if (i, j) in self._nodes and (i, j) != start_node and (i, j) != end_node:
                 self._wall_nodes.append((i, j))
-            self.removeWallNodes()
+        self.removeWallNodes()
 
     def getWallNodes(self):
         return self._wall_nodes
@@ -88,6 +90,7 @@ class Serach:
         return self._path
 
     def aStar(self):
+
         while len(self._opened_nodes) != 0:
             f_temp = {key: self._f[key] for key in self._opened_nodes}
             self._current_node = min(f_temp, key=f_temp.get)
@@ -117,8 +120,8 @@ class Serach:
 
 # Grid dimmensions
 margin = 1
-win_dim = 400
-dim_size = 20
+win_dim = 600
+dim_size = 30
 square_dim = int((win_dim - dim_size) / dim_size)
 FPS = 60
 start_node = (0, 0)
@@ -127,25 +130,48 @@ end_node = (dim_size - 1, dim_size - 1)
 
 def drawGrid(surface):
     white = (225, 225, 225)
-    grid_dim = pygame.display.get_surface().get_size()[0] // (square_dim + margin)
+    grid_dim = pygame.display.get_surface().get_size()[
+        0] // (square_dim + margin)
     for i in range(grid_dim):
         for j in range(grid_dim):
-            pygame.draw.rect(surface, white, (j * (square_dim + margin) + margin, i * (square_dim + margin) + margin, square_dim, square_dim))
+            pygame.draw.rect(surface, white, (j * (square_dim + margin) + margin,
+                             i * (square_dim + margin) + margin, square_dim, square_dim))
 
 
 def drawWall(surface, nodes):
     black = (0, 0, 0)
     for node in nodes:
         # Draw rectangle walls
-        # pygame.draw.rect(surface, black, (node[1]*(square_dim+margin)+margin, node[0]*(square_dim+margin)+margin, square_dim, square_dim))
+        pygame.draw.rect(surface, black, (node[1]*(square_dim+margin)+margin, node[0]*(
+            square_dim+margin)+margin, square_dim, square_dim))
         # Draw circle walls
-        pygame.draw.circle(surface, black, (node[1] * (square_dim + margin) + margin + square_dim // 2, node[0] * (square_dim + margin) + margin + square_dim // 2), int(square_dim / 2))
+        # pygame.draw.circle(surface, black, (node[1] * (square_dim + margin) + margin + square_dim // 2, node[0] * (
+        #     square_dim + margin) + margin + square_dim // 2), int(square_dim / 2))
 
 
 def drawPath(surface, path):
     blue = (0, 0, 255)
+    square_center = int(((square_dim + margin)) / 2)
     for i in range(len(path) - 1):
-        pygame.draw.line(surface, blue, (path[i][1] * (square_dim + margin) + square_dim / 2, path[i][0] * (square_dim + margin) + square_dim / 2), (path[i + 1][1] * (square_dim + margin) + square_dim / 2, path[i + 1][0] * (square_dim + margin) + square_dim / 2), int(square_dim / 2))
+
+        x_0 = (path[i][1] * (square_dim + margin)) + square_center
+        y_0 = (path[i][0] * (square_dim + margin)) + square_center
+        x_1 = (path[i + 1][1] * (square_dim + margin)) + square_center
+        y_1 = (path[i + 1][0] * (square_dim + margin)) + square_center
+        pygame.draw.line(surface, blue, (x_0, y_0),
+                         (x_1, y_1), 5)
+
+
+def drawStart(surface):
+    black = (0, 255, 0)
+    pygame.draw.rect(surface, black, (start_node[1]*(square_dim+margin)+margin, start_node[0]*(
+        square_dim+margin)+margin, square_dim, square_dim))
+
+
+def drawEnd(surface):
+    black = (255, 0, 0)
+    pygame.draw.rect(surface, black, (end_node[1]*(square_dim+margin)+margin, end_node[0]*(
+        square_dim+margin)+margin, square_dim, square_dim))
 
 
 pygame.init()
@@ -158,6 +184,8 @@ state = Serach(dim_size)
 drawGrid(window)
 wall_nodes = state.getWallNodes()
 drawWall(window, wall_nodes)
+drawStart(window)
+drawEnd(window)
 state.aStar()
 path = state.getPath()
 drawPath(window, path)
