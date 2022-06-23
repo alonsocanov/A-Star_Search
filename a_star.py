@@ -6,6 +6,8 @@ from math import sqrt
 from random import randint
 import sys
 
+from zmq import THREAD_AFFINITY_CPU_REMOVE
+
 
 class Serach:
     def __init__(self, dim):
@@ -207,26 +209,36 @@ drawWall(window, [end_node], (255, 0, 0))
 state.aStar()
 open_nodes = state.getOpenNodesForEachPath()
 path = state.getPath()
-# drawPath(window, path)
+animation_flag = True
+if not animation_flag:
+    drawPath(window, path)
+    done = False
+    i = 1
+    while not done:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                done = True
+        clock.tick(FPS)
+        pygame.display.update()
+    pygame.quit()
+else:
+    done = False
+    i = 1
+    while not done:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                done = True
+        if i < len(path):
+            prev_node = path[i - 1]
+            curr_node = path[i]
+            drawOpenAnimation(window, open_nodes[prev_node])
+            sleep(.5)
+            drawPathAnimation(window, curr_node, prev_node)
+            # filename = 'frame_' + str(i) + '.png'
+            # pygame.image.save(window, filename)
+        i += 1
 
+        clock.tick(FPS)
+        pygame.display.update()
 
-done = False
-i = 1
-while not done:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            done = True
-    if i < len(path):
-        prev_node = path[i - 1]
-        curr_node = path[i]
-        drawOpenAnimation(window, open_nodes[prev_node])
-        sleep(.5)
-        drawPathAnimation(window, curr_node, prev_node)
-        # filename = 'frame_' + str(i) + '.png'
-        # pygame.image.save(window, filename)
-    i += 1
-
-    clock.tick(FPS)
-    pygame.display.update()
-
-pygame.quit()
+    pygame.quit()
