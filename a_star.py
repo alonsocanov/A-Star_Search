@@ -1,3 +1,5 @@
+from os import stat
+from time import sleep
 import pygame
 from tkinter import *
 from math import sqrt
@@ -18,6 +20,7 @@ class Serach:
         self._h = {}
         self._g = {}
         self._f = {}
+        self.draw_open = {}
 
         # init functions
         self.allNodes()
@@ -25,14 +28,17 @@ class Serach:
         self.neigbourgs()
         self.FGH()
 
+    def getOpenNodesForEachPath(self):
+        return self.draw_open
+
     def allNodes(self):
         for i in range(self._dim):
             for j in range(self._dim):
                 self._nodes.append((i, j))
 
     def neigbourgs(self):
-        posibilities = [(-1, -1), (0, -1), (1, -1), (-1, 0),
-                        (1, 0), (-1, 1), (0, 1), (1, 1)]
+        posibilities = [(0, -1), (-1, 0),
+                        (1, 0), (0, 1)]
         for node in self._nodes:
             is_neighbor = []
             for i in posibilities:
@@ -75,7 +81,7 @@ class Serach:
         return sqrt((node[0] - self._current_node[0]) ** 2 + (node[1] - self._current_node[1]) ** 2)
 
     def wallNodes(self):
-        for node in range(int(dim_size * dim_size * .33)):
+        for node in range(int(dim_size * dim_size * .20)):
             i = randint(0, dim_size - 1)
             j = randint(0, dim_size - 1)
             if (i, j) in self._nodes and (i, j) != start_node and (i, j) != end_node:
@@ -92,8 +98,10 @@ class Serach:
     def aStar(self):
 
         while len(self._opened_nodes) != 0:
+
             f_temp = {key: self._f[key] for key in self._opened_nodes}
             self._current_node = min(f_temp, key=f_temp.get)
+            self.draw_open[self._current_node] = []
             if self._current_node == end_node:
                 print("Path found")
                 self.obtainPath()
@@ -107,6 +115,8 @@ class Serach:
                     self._f[node] = self._g[node] + self._h[node]
                     if node not in self._opened_nodes:
                         self._opened_nodes.append(node)
+                        self.draw_open[self._current_node].append(node)
+
         print("No path found")
         return False
 
@@ -123,7 +133,7 @@ margin = 1
 win_dim = 600
 dim_size = 30
 square_dim = int((win_dim - dim_size) / dim_size)
-FPS = 60
+FPS = 20
 start_node = (0, 0)
 end_node = (dim_size - 1, dim_size - 1)
 
@@ -138,11 +148,10 @@ def drawGrid(surface):
                              i * (square_dim + margin) + margin, square_dim, square_dim))
 
 
-def drawWall(surface, nodes):
-    black = (0, 0, 0)
+def drawWall(surface, nodes, color=(0, 0, 0)):
     for node in nodes:
         # Draw rectangle walls
-        pygame.draw.rect(surface, black, (node[1]*(square_dim+margin)+margin, node[0]*(
+        pygame.draw.rect(surface, color, (node[1]*(square_dim+margin)+margin, node[0]*(
             square_dim+margin)+margin, square_dim, square_dim))
         # Draw circle walls
         # pygame.draw.circle(surface, black, (node[1] * (square_dim + margin) + margin + square_dim // 2, node[0] * (
@@ -162,16 +171,25 @@ def drawPath(surface, path):
                          (x_1, y_1), 5)
 
 
-def drawStart(surface):
-    black = (0, 255, 0)
-    pygame.draw.rect(surface, black, (start_node[1]*(square_dim+margin)+margin, start_node[0]*(
-        square_dim+margin)+margin, square_dim, square_dim))
+def drawPathAnimation(surface, curr_node, prev_node):
+    blue = (0, 0, 255)
+    square_center = int(((square_dim + margin)) / 2)
+    for i in range(len(path) - 1):
+
+        x_0 = (prev_node[1] * (square_dim + margin)) + square_center
+        y_0 = (prev_node[0] * (square_dim + margin)) + square_center
+        x_1 = (curr_node[1] * (square_dim + margin)) + square_center
+        y_1 = (curr_node[0] * (square_dim + margin)) + square_center
+        pygame.draw.line(surface, blue, (x_0, y_0),
+                         (x_1, y_1), 5)
 
 
-def drawEnd(surface):
-    black = (255, 0, 0)
-    pygame.draw.rect(surface, black, (end_node[1]*(square_dim+margin)+margin, end_node[0]*(
-        square_dim+margin)+margin, square_dim, square_dim))
+def drawOpenAnimation(surface, open_nodes):
+    for node in open_nodes:
+        # Draw rectangle walls
+        if node != end_node:
+            pygame.draw.rect(surface, (0, 255, 255), (node[1]*(square_dim+margin)+margin, node[0]*(
+                square_dim+margin)+margin, square_dim, square_dim))
 
 
 pygame.init()
@@ -183,19 +201,31 @@ clock = pygame.time.Clock()
 state = Serach(dim_size)
 drawGrid(window)
 wall_nodes = state.getWallNodes()
-drawWall(window, wall_nodes)
-drawStart(window)
-drawEnd(window)
+drawWall(window, wall_nodes, (0, 0, 0))
+drawWall(window, [start_node], (0, 255, 0))
+drawWall(window, [end_node], (255, 0, 0))
 state.aStar()
+open_nodes = state.getOpenNodesForEachPath()
 path = state.getPath()
-drawPath(window, path)
+# drawPath(window, path)
 
 
 done = False
+i = 1
 while not done:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             done = True
+    if i < len(path):
+        prev_node = path[i - 1]
+        curr_node = path[i]
+        drawOpenAnimation(window, open_nodes[prev_node])
+        sleep(.5)
+        drawPathAnimation(window, curr_node, prev_node)
+        # filename = 'frame_' + str(i) + '.png'
+        # pygame.image.save(window, filename)
+    i += 1
+
     clock.tick(FPS)
     pygame.display.update()
 
